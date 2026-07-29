@@ -1,0 +1,16 @@
+export const colors = {
+  background: "#F6F6F6",
+  surface: "#FFFFFF",
+  title: "#F4C503",
+  card: "#F4C503",
+  cartButton: "#F4C503",
+  tabBar: "#F4C503",
+  text: "#1A1A1A",
+  textMuted: "#666666",
+  border: "#E5E5E5",
+  header: "#1A1A1A",
+  shadow: "#000000",
+  badge: "#000000",
+  badgeText: "#FFFFFF",
+  error: "#B42318",
+} as const;
