@@ -1,0 +1,1 @@
+export { RegistrationContainer } from "./RegistrationContainer";

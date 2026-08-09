@@ -1,17 +1,15 @@
-import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-
 import { getCategoryProducts } from "@/services/products/products.service";
 import type { Product } from "@/types/product";
-
-import { CategoryProductsView } from "./CategoryProductsView";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import CategoryProductsView from "./CategoryProductsView";
 
 type CategoryProductsContainerProps = {
   categoryId?: string;
   categoryName?: string;
 };
 
-export function CategoryProductsContainer({
+export default function CategoryProductsContainer({
   categoryId,
   categoryName = "Prodotti",
 }: CategoryProductsContainerProps) {
@@ -26,7 +24,11 @@ export function CategoryProductsContainer({
   }, []);
 
   const handleBackPress = useCallback(() => {
-    router.back();
+    router.dismissTo("/");
+  }, [router]);
+
+  const handleCartPress = useCallback(() => {
+    router.push("/cart");
   }, [router]);
 
   const handleProductPress = useCallback(
@@ -56,10 +58,13 @@ export function CategoryProductsContainer({
       setIsLoading(true);
 
       try {
-        const result = await getCategoryProducts(categoryId, controller.signal);
-        setProducts(result);
+        const response = await getCategoryProducts(
+          categoryId,
+          controller.signal,
+        );
+        setProducts(response.data);
       } catch (caughtError) {
-        if (caughtError instanceof Error && caughtError.name === "AbortError") {
+        if (controller.signal.aborted) {
           return;
         }
 
@@ -86,6 +91,7 @@ export function CategoryProductsContainer({
       error={error}
       isLoading={isLoading}
       onBackPress={handleBackPress}
+      onCartPress={handleCartPress}
       onProductPress={handleProductPress}
       onRetry={retry}
       products={products}

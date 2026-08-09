@@ -1,12 +1,12 @@
-import { apiClient, type ApiClient } from "@/core/api";
+import axiosClient from "@/infrastructure/axios.client";
 import type { Product, ProductDetail } from "@/types/product";
+import type { AxiosResponse } from "axios";
 
 export async function getCategoryProducts(
   categoryId: string,
   signal?: AbortSignal,
-  client: ApiClient = apiClient,
-): Promise<Product[]> {
-  return client.get<Product[]>(
+): Promise<AxiosResponse<Product[]>> {
+  return axiosClient.get<Product[]>(
     `/categories/${encodeURIComponent(categoryId)}/products`,
     { signal },
   );
@@ -15,9 +15,8 @@ export async function getCategoryProducts(
 export async function getProduct(
   productId: string,
   signal?: AbortSignal,
-  client: ApiClient = apiClient,
-): Promise<ProductDetail> {
-  return client.get<ProductDetail>(
+): Promise<AxiosResponse<ProductDetail>> {
+  return axiosClient.get<ProductDetail>(
     `/products/${encodeURIComponent(productId)}`,
     { signal },
   );

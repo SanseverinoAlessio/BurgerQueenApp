@@ -1,6 +1,5 @@
+import CategoryProductsContainer from "@/screens/category-products/CategoryProductsContainer";
 import { useLocalSearchParams } from "expo-router";
-
-import { CategoryProductsContainer } from "@/screens/category-products";
 
 export default function CategoryProductsRoute() {
   const { CategoryId, CategoryName } = useLocalSearchParams<{

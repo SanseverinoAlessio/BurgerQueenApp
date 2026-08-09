@@ -28,10 +28,7 @@ export function ProductCard({
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-        pressed && styles.cardPressed,
-      ]}
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
     >
       <View style={styles.media}>
         {imageUrl ? (
@@ -46,6 +43,20 @@ export function ProductCard({
             <FontAwesome6 color={colors.textMuted} name="burger" size={34} />
           </View>
         )}
+      </View>
+      <View style={styles.content}>
+        <Text numberOfLines={1} style={styles.name}>
+          {product.name}
+        </Text>
+        {product.description ? (
+          <Text numberOfLines={2} style={styles.description}>
+            {product.description}
+          </Text>
+        ) : null}
+        <Text style={styles.price}>€ {formattedPrice}</Text>
+      </View>
+
+      <View style={{ width: "15%" }}>
         <Pressable
           accessibilityLabel={`Aggiungi ${product.name}`}
           accessibilityRole="button"
@@ -58,17 +69,6 @@ export function ProductCard({
         >
           <FontAwesome6 color={colors.surface} name="plus" size={22} />
         </Pressable>
-      </View>
-      <View style={styles.content}>
-        <Text numberOfLines={1} style={styles.name}>
-          {product.name}
-        </Text>
-        {product.description ? (
-          <Text numberOfLines={2} style={styles.description}>
-            {product.description}
-          </Text>
-        ) : null}
-        <Text style={styles.price}>€ {formattedPrice}</Text>
       </View>
     </Pressable>
   );
@@ -109,22 +109,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   addButton: {
-    alignItems: "center",
     backgroundColor: colors.text,
+    alignItems: "center",
     borderRadius: 18,
     bottom: -1,
-    height: 36,
+    height: 110,
     justifyContent: "center",
-    position: "absolute",
-    right: -2,
-    width: 36,
+    right: 0,
   },
   addButtonPressed: {
     opacity: 0.75,
   },
   content: {
-    flex: 1,
     justifyContent: "center",
+    width: "50%",
     paddingHorizontal: 12,
     paddingVertical: 10,
   },

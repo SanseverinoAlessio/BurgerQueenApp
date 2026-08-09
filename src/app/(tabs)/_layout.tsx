@@ -1,13 +1,13 @@
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { Tabs } from "expo-router";
-
 import { colors } from "@/theme/colors";
 import { fonts } from "@/theme/fonts";
 import { responsiveFontSize } from "@/utils/responsiveFontSize";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { Tabs } from "expo-router";
 
 export default function TabsLayout() {
   return (
     <Tabs
+      initialRouteName="(order)"
       screenOptions={{
         headerShown: false,
         sceneStyle: {
@@ -44,12 +44,12 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="(order)"
         options={{
           tabBarIcon: ({ color }) => (
-            <FontAwesome6 color={color} name="house" size={24} />
+            <FontAwesome6 color={color} name="burger" size={24} />
           ),
-          title: "Home",
+          title: "Ordina",
         }}
       />
       <Tabs.Screen
@@ -68,12 +68,6 @@ export default function TabsLayout() {
             <FontAwesome6 color={color} name="user" size={24} />
           ),
           title: "Account",
-        }}
-      />
-      <Tabs.Screen
-        name="categories"
-        options={{
-          href: null,
         }}
       />
     </Tabs>

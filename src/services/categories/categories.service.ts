@@ -1,6 +1,9 @@
-import { apiClient } from "@/core/api";
-import { category } from "@/types/category";
+import axiosClient from "@/infrastructure/axios.client";
+import type { category } from "@/types/category";
+import type { AxiosResponse } from "axios";
 
-export async function getCategories(): Promise<category[]> {
-  return await apiClient.get("/categories");
+export async function getCategories(
+  signal?: AbortSignal,
+): Promise<AxiosResponse<category[]>> {
+  return axiosClient.get<category[]>("/categories", { signal });
 }

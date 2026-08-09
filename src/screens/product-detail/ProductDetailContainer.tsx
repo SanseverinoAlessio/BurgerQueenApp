@@ -4,13 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { getProduct } from "@/services/products/products.service";
 import type { ProductDetail } from "@/types/product";
 
-import { ProductDetailView } from "./ProductDetailView";
+import ProductDetailView from "./ProductDetailView";
 
 type ProductDetailContainerProps = {
   productId?: string;
 };
 
-export function ProductDetailContainer({
+export default function ProductDetailContainer({
   productId,
 }: ProductDetailContainerProps) {
   const router = useRouter();
@@ -21,6 +21,10 @@ export function ProductDetailContainer({
 
   const handleBackPress = useCallback(() => {
     router.back();
+  }, [router]);
+
+  const handleCartPress = useCallback(() => {
+    router.push("/cart");
   }, [router]);
 
   const retry = useCallback(() => {
@@ -41,10 +45,10 @@ export function ProductDetailContainer({
       setIsLoading(true);
 
       try {
-        const result = await getProduct(productId, controller.signal);
-        setProduct(result);
+        const response = await getProduct(productId, controller.signal);
+        setProduct(response.data);
       } catch (caughtError) {
-        if (caughtError instanceof Error && caughtError.name === "AbortError") {
+        if (controller.signal.aborted) {
           return;
         }
 
@@ -70,6 +74,7 @@ export function ProductDetailContainer({
       error={error}
       isLoading={isLoading}
       onBackPress={handleBackPress}
+      onCartPress={handleCartPress}
       onRetry={retry}
       product={product}
     />

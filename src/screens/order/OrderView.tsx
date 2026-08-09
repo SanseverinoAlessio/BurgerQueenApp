@@ -12,17 +12,17 @@ import { responsiveFontSize } from "@/utils/responsiveFontSize";
 
 const crown = require("@/assets/images/corona.svg");
 
-type HomeViewProps = {
+type OrderViewProps = {
   onCartPress?: () => void;
   onSuggestionPress: (id: number) => void;
   categories: category[];
 };
 
-export function HomeView({
+export function OrderView({
   onCartPress,
   onSuggestionPress,
   categories,
-}: HomeViewProps) {
+}: OrderViewProps) {
   const [query, setQuery] = useState("");
 
   return (
@@ -109,7 +109,6 @@ const styles = StyleSheet.create({
   },
   titleIcon: {
     height: 60,
-
     width: 60,
   },
   helper: {

@@ -21,16 +21,18 @@ type CategoryProductsViewProps = {
   error: string | null;
   isLoading: boolean;
   onBackPress: () => void;
+  onCartPress: () => void;
   onProductPress: (productId: number) => void;
   onRetry: () => void;
   products: Product[];
 };
 
-export function CategoryProductsView({
+export default function CategoryProductsView({
   categoryName,
   error,
   isLoading,
   onBackPress,
+  onCartPress,
   onProductPress,
   onRetry,
   products,
@@ -49,10 +51,7 @@ export function CategoryProductsView({
       <Pressable
         accessibilityRole="button"
         onPress={onRetry}
-        style={({ pressed }) => [
-          styles.retryButton,
-          pressed && styles.pressed,
-        ]}
+        style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}
       >
         <Text style={styles.retryText}>Riprova</Text>
       </Pressable>
@@ -75,11 +74,7 @@ export function CategoryProductsView({
             pressed && styles.pressed,
           ]}
         >
-          <FontAwesome6
-            color={colors.text}
-            name="chevron-left"
-            size={20}
-          />
+          <FontAwesome6 color={colors.text} name="chevron-left" size={20} />
         </Pressable>
         <Text numberOfLines={2} style={styles.title}>
           {titleStart}
@@ -91,16 +86,13 @@ export function CategoryProductsView({
           accessibilityLabel="Carrello, 1 prodotto"
           accessibilityRole="button"
           hitSlop={8}
+          onPress={onCartPress}
           style={({ pressed }) => [
             styles.cartButton,
             pressed && styles.pressed,
           ]}
         >
-          <FontAwesome6
-            color={colors.text}
-            name="cart-shopping"
-            size={23}
-          />
+          <FontAwesome6 color={colors.text} name="cart-shopping" size={23} />
           <View style={styles.cartBadge}>
             <Text style={styles.cartBadgeText}>1</Text>
           </View>

@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { getCategories } from "@/services/categories/categories.service";
 import type { category } from "@/types/category";
 
-import { HomeView } from "./HomeView";
+import { OrderView } from "./OrderView";
 
-export function HomeContainer() {
+export function OrderContainer() {
   const router = useRouter();
   const [categories, setCategories] = useState<category[]>([]);
 
@@ -25,18 +25,33 @@ export function HomeContainer() {
     [categories, router],
   );
 
+  const handleCartPress = useCallback(() => {
+    router.push("/cart");
+  }, [router]);
+
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchCategories = async () => {
-      let categories = await getCategories();
-      setCategories(categories);
+      try {
+        const response = await getCategories(controller.signal);
+        setCategories(response.data);
+      } catch (caughtError) {
+        if (!controller.signal.aborted) {
+          console.error("Unable to load categories.", caughtError);
+        }
+      }
     };
 
     fetchCategories();
+
+    return () => controller.abort();
   }, []);
 
   return (
-    <HomeView
+    <OrderView
       categories={categories}
+      onCartPress={handleCartPress}
       onSuggestionPress={handleCategoryPress}
     />
   );

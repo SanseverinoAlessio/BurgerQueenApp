@@ -21,14 +21,16 @@ type ProductDetailViewProps = {
   error: string | null;
   isLoading: boolean;
   onBackPress: () => void;
+  onCartPress: () => void;
   onRetry: () => void;
   product: ProductDetail | null;
 };
 
-export function ProductDetailView({
+export default function ProductDetailView({
   error,
   isLoading,
   onBackPress,
+  onCartPress,
   onRetry,
   product,
 }: ProductDetailViewProps) {
@@ -71,11 +73,7 @@ export function ProductDetailView({
             pressed && styles.pressed,
           ]}
         >
-          <FontAwesome6
-            color={colors.text}
-            name="chevron-left"
-            size={20}
-          />
+          <FontAwesome6 color={colors.text} name="chevron-left" size={20} />
         </Pressable>
         <Text numberOfLines={1} style={styles.title}>
           {product?.name ?? "Prodotto"}
@@ -84,16 +82,13 @@ export function ProductDetailView({
           accessibilityLabel="Carrello, 1 prodotto"
           accessibilityRole="button"
           hitSlop={8}
+          onPress={onCartPress}
           style={({ pressed }) => [
             styles.cartButton,
             pressed && styles.pressed,
           ]}
         >
-          <FontAwesome6
-            color={colors.text}
-            name="cart-shopping"
-            size={23}
-          />
+          <FontAwesome6 color={colors.text} name="cart-shopping" size={23} />
           <View style={styles.cartBadge}>
             <Text style={styles.cartBadgeText}>1</Text>
           </View>
@@ -174,7 +169,9 @@ export function ProductDetailView({
                       style={styles.variation}
                     >
                       <View style={styles.radio}>
-                        {isSelected ? <View style={styles.radioSelected} /> : null}
+                        {isSelected ? (
+                          <View style={styles.radioSelected} />
+                        ) : null}
                       </View>
                       <Text style={styles.variationName}>{variation.name}</Text>
                     </Pressable>
@@ -194,11 +191,7 @@ export function ProductDetailView({
                     setQuantity((current) => Math.max(1, current - 1))
                   }
                 >
-                  <FontAwesome6
-                    color={colors.text}
-                    name="minus"
-                    size={17}
-                  />
+                  <FontAwesome6 color={colors.text} name="minus" size={17} />
                 </Pressable>
                 <Text style={styles.quantityText}>{quantity}</Text>
                 <Pressable
