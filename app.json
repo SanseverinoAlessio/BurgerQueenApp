@@ -20,6 +20,9 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.burgerqueen"
     },
+    "androidNavigationBar": {
+      "visible": "immersive"
+    },
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"

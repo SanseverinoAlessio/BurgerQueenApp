@@ -18,7 +18,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     flex: 1,
     justifyContent: "center",
-    paddingBottom: 72,
   },
   title: {
     color: colors.text,

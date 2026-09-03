@@ -1,7 +1,7 @@
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import type { ComponentProps } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppHeader } from "@/components/AppHeader";
 import { colors } from "@/theme/colors";
@@ -62,68 +62,70 @@ export function AccountView({
   onLogout,
   onOrderHistory,
 }: AccountViewProps) {
-  const insets = useSafeAreaInsets();
-
   return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.page,
-        { paddingBottom: Math.max(insets.bottom + 96, 116) },
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.header}>
-        <AppHeader showCart={false} subtitle="Lorem ipsum" />
-      </View>
-
-      <AccountHero displayName={displayName} />
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Di cosa hai bisogno?</Text>
-        <Text style={styles.cardSubtitle}>
-          Gestisci dati, ordini ed account da qui...
-        </Text>
-        <View style={styles.divider} />
-
-        <View style={styles.actions}>
-          <AccountAction
-            backgroundColor={colors.title}
-            icon="user"
-            label="Modifica Dati"
-            onPress={onEditProfile}
-          />
-          <AccountAction
-            backgroundColor={colors.title}
-            icon="list-ul"
-            label="Storico Ordini"
-            onPress={onOrderHistory}
-          />
-          <AccountAction
-            backgroundColor={colors.text}
-            disabled={isLoggingOut}
-            icon="right-from-bracket"
-            label={isLoggingOut ? "Uscita..." : "Esci"}
-            onPress={onLogout}
-            textColor={colors.surface}
-          />
-          <AccountAction
-            backgroundColor="#C91D20"
-            icon="trash-can"
-            label="Elimina Account"
-            onPress={onDeleteAccount}
-            textColor={colors.surface}
-          />
+    <SafeAreaView edges={["right", "bottom", "left"]} style={styles.safeArea}>
+      <ScrollView
+        contentContainerStyle={styles.page}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <AppHeader showCart={false} subtitle="Lorem ipsum" />
         </View>
-      </View>
-    </ScrollView>
+
+        <AccountHero displayName={displayName} />
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Di cosa hai bisogno?</Text>
+          <Text style={styles.cardSubtitle}>
+            Gestisci dati, ordini ed account da qui...
+          </Text>
+          <View style={styles.divider} />
+
+          <View style={styles.actions}>
+            <AccountAction
+              backgroundColor={colors.title}
+              icon="user"
+              label="Modifica Dati"
+              onPress={onEditProfile}
+            />
+            <AccountAction
+              backgroundColor={colors.title}
+              icon="list-ul"
+              label="Storico Ordini"
+              onPress={onOrderHistory}
+            />
+            <AccountAction
+              backgroundColor={colors.text}
+              disabled={isLoggingOut}
+              icon="right-from-bracket"
+              label={isLoggingOut ? "Uscita..." : "Esci"}
+              onPress={onLogout}
+              textColor={colors.surface}
+            />
+            <AccountAction
+              backgroundColor="#C91D20"
+              icon="trash-can"
+              label="Elimina Account"
+              onPress={onDeleteAccount}
+              textColor={colors.surface}
+            />
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
   page: {
     alignItems: "center",
     backgroundColor: colors.background,
     flexGrow: 1,
+    paddingBottom: 20,
   },
   header: {
     width: "100%",

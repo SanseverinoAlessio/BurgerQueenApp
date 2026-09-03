@@ -6,7 +6,7 @@ import { AccountView } from "./AccountView";
 
 export function AccountContainer() {
   const router = useRouter();
-  const { signOut } = useContext(AuthContext);
+  const { signOut, user } = useContext(AuthContext);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleEditProfile = useCallback(() => {
@@ -25,6 +25,7 @@ export function AccountContainer() {
 
   return (
     <AccountView
+      displayName={user ? `${user.first_name} ${user.last_name}`.trim() : "Utente"}
       isLoggingOut={isLoggingOut}
       onEditProfile={handleEditProfile}
       onLogout={handleLogout}

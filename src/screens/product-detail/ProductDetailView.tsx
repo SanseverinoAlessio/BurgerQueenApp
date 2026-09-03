@@ -11,40 +11,52 @@ import {
 } from "react-native";
 
 import { AppHeader } from "@/components/AppHeader";
+import { CartButton } from "@/components/CartButton";
+import { VariationsSelection } from "@/components/VariationsSelection";
+import { useVariationSelection } from "@/hooks/useVariationsSelection";
 import { colors } from "@/theme/colors";
 import { fonts } from "@/theme/fonts";
 import type { ProductDetail } from "@/types/product";
 import { resolveApiImageUrl } from "@/utils/resolveApiImageUrl";
 import { responsiveFontSize } from "@/utils/responsiveFontSize";
+import { AddToCartButton } from "./components/AddToCartButton";
 
 type ProductDetailViewProps = {
+  addToCartError: string | null;
   error: string | null;
+  isAddingToCart: boolean;
   isLoading: boolean;
+  onAddToCart: (quantity: number, variationIds: number[]) => void;
   onBackPress: () => void;
   onCartPress: () => void;
   onRetry: () => void;
   product: ProductDetail | null;
+  showCart: boolean;
+  useVariationsSelection: typeof useVariationSelection;
 };
 
 export default function ProductDetailView({
+  addToCartError,
   error,
+  isAddingToCart,
   isLoading,
+  onAddToCart,
   onBackPress,
   onCartPress,
   onRetry,
   product,
+  showCart,
+  useVariationsSelection,
 }: ProductDetailViewProps) {
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariations, setSelectedVariations] = useState<
-    Record<number, number>
-  >({});
+  const variationSelection = useVariationSelection();
 
   useEffect(() => {
     if (!product) {
       return;
     }
 
-    setSelectedVariations(
+    variationSelection.setSelectedVariations(
       Object.fromEntries(
         product.groups
           .filter((group) => group.variations.length > 0 && group.min > 0)
@@ -61,7 +73,6 @@ export default function ProductDetailView({
       showsVerticalScrollIndicator={false}
     >
       <AppHeader showCart={false} subtitle="Lorem ipsum" />
-
       <View style={styles.heading}>
         <Pressable
           accessibilityLabel="Torna indietro"
@@ -78,21 +89,7 @@ export default function ProductDetailView({
         <Text numberOfLines={1} style={styles.title}>
           {product?.name ?? "Prodotto"}
         </Text>
-        <Pressable
-          accessibilityLabel="Carrello, 1 prodotto"
-          accessibilityRole="button"
-          hitSlop={8}
-          onPress={onCartPress}
-          style={({ pressed }) => [
-            styles.cartButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <FontAwesome6 color={colors.text} name="cart-shopping" size={23} />
-          <View style={styles.cartBadge}>
-            <Text style={styles.cartBadgeText}>1</Text>
-          </View>
-        </Pressable>
+        {showCart ? <CartButton onPress={onCartPress} /> : null}
       </View>
       <View style={styles.divider} />
 
@@ -141,44 +138,11 @@ export default function ProductDetailView({
               <Text style={styles.description}>{product.description}</Text>
             ) : null}
 
-            {product.groups.map((group) => (
-              <View key={group.id} style={styles.group}>
-                {product.groups.length > 1 || group.name ? (
-                  <Text style={styles.groupTitle}>{group.name}</Text>
-                ) : null}
-                {group.description ? (
-                  <Text style={styles.groupDescription}>
-                    {group.description}
-                  </Text>
-                ) : null}
-                {group.variations.map((variation) => {
-                  const isSelected =
-                    selectedVariations[group.id] === variation.id;
-
-                  return (
-                    <Pressable
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: isSelected }}
-                      key={variation.id}
-                      onPress={() =>
-                        setSelectedVariations((current) => ({
-                          ...current,
-                          [group.id]: variation.id,
-                        }))
-                      }
-                      style={styles.variation}
-                    >
-                      <View style={styles.radio}>
-                        {isSelected ? (
-                          <View style={styles.radioSelected} />
-                        ) : null}
-                      </View>
-                      <Text style={styles.variationName}>{variation.name}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ))}
+            <VariationsSelection
+              product={product}
+              setSelectedVariations={variationSelection.setSelectedVariations}
+              selectedVariations={variationSelection.selectedVariations}
+            ></VariationsSelection>
 
             <View style={styles.actions}>
               <View style={styles.quantity}>
@@ -203,16 +167,21 @@ export default function ProductDetailView({
                   <FontAwesome6 color={colors.text} name="plus" size={17} />
                 </Pressable>
               </View>
-              <Pressable
-                accessibilityRole="button"
-                style={({ pressed }) => [
-                  styles.addButton,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.addButtonText}>Aggiungi</Text>
-              </Pressable>
+              <AddToCartButton
+                isLoading={isAddingToCart}
+                onPress={() =>
+                  onAddToCart(
+                    quantity,
+                    Object.values(variationSelection.selectedVariations),
+                  )
+                }
+              />
             </View>
+            {addToCartError ? (
+              <Text accessibilityRole="alert" style={styles.cartError}>
+                {addToCartError}
+              </Text>
+            ) : null}
           </View>
         </View>
       ) : null}
@@ -255,35 +224,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     fontSize: responsiveFontSize(32),
     lineHeight: 38,
-  },
-  cartButton: {
-    alignItems: "center",
-    backgroundColor: colors.cartButton,
-    borderRadius: 27,
-    elevation: 4,
-    height: 54,
-    justifyContent: "center",
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    width: 54,
-  },
-  cartBadge: {
-    alignItems: "center",
-    backgroundColor: colors.badge,
-    borderRadius: 10,
-    bottom: -1,
-    height: 20,
-    justifyContent: "center",
-    position: "absolute",
-    right: -3,
-    width: 20,
-  },
-  cartBadgeText: {
-    color: colors.badgeText,
-    fontFamily: fonts.bold,
-    fontSize: responsiveFontSize(11),
   },
   divider: {
     backgroundColor: colors.textMuted,
@@ -337,44 +277,7 @@ const styles = StyleSheet.create({
   group: {
     marginTop: 26,
   },
-  groupTitle: {
-    color: colors.text,
-    fontFamily: fonts.semiBold,
-    fontSize: responsiveFontSize(18),
-    marginBottom: 8,
-  },
-  groupDescription: {
-    color: colors.text,
-    fontFamily: fonts.regular,
-    fontSize: responsiveFontSize(15),
-    marginBottom: 8,
-  },
-  variation: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 9,
-    minHeight: 34,
-  },
-  radio: {
-    alignItems: "center",
-    borderColor: colors.text,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    height: 22,
-    justifyContent: "center",
-    width: 22,
-  },
-  radioSelected: {
-    backgroundColor: colors.text,
-    borderRadius: 6,
-    height: 12,
-    width: 12,
-  },
-  variationName: {
-    color: colors.text,
-    fontFamily: fonts.regular,
-    fontSize: responsiveFontSize(18),
-  },
+
   actions: {
     alignItems: "center",
     flexDirection: "row",
@@ -391,16 +294,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: responsiveFontSize(24),
   },
-  addButton: {
-    backgroundColor: colors.text,
-    borderRadius: 14,
-    paddingHorizontal: 18,
-    paddingVertical: 13,
-  },
-  addButtonText: {
-    color: colors.surface,
-    fontFamily: fonts.bold,
-    fontSize: responsiveFontSize(18),
+  cartError: {
+    color: colors.error,
+    fontFamily: fonts.regular,
+    fontSize: responsiveFontSize(15),
+    marginTop: 12,
   },
   status: {
     alignItems: "center",

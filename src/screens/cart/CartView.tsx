@@ -1,6 +1,7 @@
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { useState } from "react";
+import { Image } from "expo-image";
 import {
+  ActivityIndicator,
   FlatList,
   Modal,
   Pressable,
@@ -8,84 +9,161 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
-import { AppHeader } from "@/components/AppHeader";
+import { SelectField } from "@/components/SelectField";
 import { colors } from "@/theme/colors";
 import { fonts } from "@/theme/fonts";
 import type { CartItem } from "@/types/cart";
+import type { CheckoutOption } from "@/types/checkout";
 import { responsiveFontSize } from "@/utils/responsiveFontSize";
 
 import { CartItemCard } from "./components/CartItemCard";
 
-const availableTimes = ["12:00", "12:30", "13:00", "13:30", "14:00"];
+const crown = require("@/assets/images/corona.svg");
 
 type CartViewProps = {
+  actionError: string | null;
+  availableHours: CheckoutOption[];
+  error: string | null;
+  isCheckoutLoading: boolean;
+  isLoading: boolean;
+  isPhoneVerificationVisible: boolean;
+  isSubmitting: boolean;
   items: CartItem[];
   onBack: () => void;
+  onClosePhoneVerification: () => void;
   onConfirm: () => void;
   onDecrease: (itemId: number) => void;
   onIncrease: (itemId: number) => void;
+  onProceedPhoneVerification: () => void;
   onRemove: (itemId: number) => void;
-  onSelectTime: (time: string) => void;
-  selectedTime: string | null;
+  onRetry: () => void;
+  onSelectTime: (timeId: number) => void;
+  onSelectType: (typeId: number) => void;
+  orderTypes: CheckoutOption[];
+  selectedTimeId: number | null;
+  selectedTypeId: number | null;
   total: number;
+  updatingItemIds: ReadonlySet<number>;
 };
 
-export function CartView({
-  items,
-  onBack,
-  onConfirm,
-  onDecrease,
-  onIncrease,
-  onRemove,
-  onSelectTime,
-  selectedTime,
-  total,
-}: CartViewProps) {
+export function CartView(props: CartViewProps) {
+  const {
+    actionError,
+    availableHours,
+    error,
+    isCheckoutLoading,
+    isLoading,
+    isPhoneVerificationVisible,
+    isSubmitting,
+    items,
+    onBack,
+    onClosePhoneVerification,
+    onConfirm,
+    onDecrease,
+    onIncrease,
+    onProceedPhoneVerification,
+    onRemove,
+    onRetry,
+    onSelectTime,
+    onSelectType,
+    orderTypes,
+    selectedTimeId,
+    selectedTypeId,
+    total,
+    updatingItemIds,
+  } = props;
   const insets = useSafeAreaInsets();
-  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
-  const formattedTotal = Number.isInteger(total)
-    ? total.toFixed(0)
-    : total.toFixed(2);
+  const formattedTotal = total.toFixed(2).replace(".", ",");
+  const canConfirm =
+    items.length > 0 &&
+    selectedTypeId !== null &&
+    selectedTimeId !== null &&
+    !isSubmitting;
 
   return (
     <View style={styles.page}>
-      <AppHeader showCart={false} subtitle="Lorem ipsum" />
+      <SafeAreaView edges={["top", "right", "left"]} style={styles.header}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerSide}>
+            <Pressable
+              accessibilityLabel="Torna indietro"
+              accessibilityRole="button"
+              hitSlop={10}
+              onPress={onBack}
+              style={({ pressed }) => [
+                styles.backButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <FontAwesome6
+                color={colors.background}
+                name="chevron-left"
+                size={16}
+              />
+            </Pressable>
+          </View>
 
-      <View style={styles.heading}>
-        <Pressable
-          accessibilityLabel="Torna indietro"
-          accessibilityRole="button"
-          hitSlop={10}
-          onPress={onBack}
-          style={({ pressed }) => [
-            styles.backButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <FontAwesome6 color={colors.text} name="chevron-left" size={17} />
-        </Pressable>
-        <Text style={styles.title}>Carrello</Text>
-      </View>
-      <View style={styles.divider} />
+          <Text style={styles.title}>Carrello</Text>
+
+          <View style={[styles.headerSide, styles.headerSideRight]}>
+            <Image
+              accessibilityLabel="Burger Queen"
+              contentFit="contain"
+              source={crown}
+              style={styles.crown}
+            />
+          </View>
+        </View>
+      </SafeAreaView>
 
       <FlatList
         contentContainerStyle={styles.list}
         data={items}
         keyExtractor={(item) => String(item.id)}
+        ListHeaderComponent={
+          actionError ? (
+            <Text accessibilityRole="alert" style={styles.actionError}>
+              {actionError}
+            </Text>
+          ) : null
+        }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <FontAwesome6
-              color={colors.textMuted}
-              name="basket-shopping"
-              size={42}
-            />
-            <Text style={styles.emptyText}>Il carrello è vuoto.</Text>
+            {isLoading ? (
+              <ActivityIndicator color={colors.title} size="large" />
+            ) : error ? (
+              <>
+                <Text accessibilityRole="alert" style={styles.errorText}>
+                  {error}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={onRetry}
+                  style={styles.retryButton}
+                >
+                  <Text style={styles.retryText}>Riprova</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <FontAwesome6
+                  color={colors.textMuted}
+                  name="basket-shopping"
+                  size={42}
+                />
+                <Text style={styles.emptyText}>Il carrello è vuoto.</Text>
+              </>
+            )}
           </View>
         }
         renderItem={({ item }) => (
           <CartItemCard
+            isUpdating={updatingItemIds.has(item.id)}
             item={item}
             onDecrease={() => onDecrease(item.id)}
             onIncrease={() => onIncrease(item.id)}
@@ -106,109 +184,141 @@ export function CartView({
           <Text style={styles.totalValue}>€ {formattedTotal}</Text>
         </View>
 
-        <Pressable
-          accessibilityLabel="Seleziona un orario"
-          accessibilityRole="button"
-          onPress={() => setIsTimePickerOpen(true)}
-          style={({ pressed }) => [
-            styles.timeSelector,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text
-            style={selectedTime ? styles.timeValue : styles.timePlaceholder}
-          >
-            {selectedTime ?? "Seleziona un orario..."}
-          </Text>
-          <FontAwesome6 color={colors.textMuted} name="caret-down" size={14} />
-        </Pressable>
+        <View style={styles.selectorsRow}>
+          <View style={styles.selectorColumn}>
+            <Text style={styles.selectorLabel}>Modalità di consegna</Text>
+            <SelectField
+              accessibilityLabel="Seleziona la modalità di consegna"
+              dialogTitle="Modalità di consegna"
+              disabled={isLoading || orderTypes.length === 0}
+              isLoading={isLoading}
+              onValueChange={onSelectType}
+              options={orderTypes}
+              placeholder="Seleziona una modalità..."
+              value={selectedTypeId}
+            />
+          </View>
+
+          <View style={styles.selectorColumn}>
+            <Text style={styles.selectorLabel}>Orario</Text>
+            <SelectField
+              accessibilityLabel="Seleziona un orario"
+              dialogTitle="Seleziona un orario"
+              disabled={
+                selectedTypeId === null ||
+                isCheckoutLoading ||
+                availableHours.length === 0
+              }
+              isLoading={isCheckoutLoading}
+              onValueChange={onSelectTime}
+              options={availableHours}
+              placeholder={
+                selectedTypeId === null
+                  ? "Seleziona prima la modalità..."
+                  : availableHours.length === 0 && !isCheckoutLoading
+                    ? "Nessun orario disponibile"
+                    : "Seleziona un orario..."
+              }
+              value={selectedTimeId}
+            />
+          </View>
+        </View>
 
         <Pressable
           accessibilityRole="button"
-          disabled={items.length === 0}
+          disabled={!canConfirm}
           onPress={onConfirm}
           style={({ pressed }) => [
             styles.confirmButton,
-            items.length === 0 && styles.disabledButton,
+            !canConfirm && styles.disabledButton,
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.confirmText}>Conferma Ordine</Text>
+          {isSubmitting ? (
+            <ActivityIndicator color={colors.text} />
+          ) : (
+            <Text style={styles.confirmText}>Conferma Ordine</Text>
+          )}
         </Pressable>
       </View>
 
       <Modal
         animationType="fade"
-        onRequestClose={() => setIsTimePickerOpen(false)}
+        onRequestClose={onClosePhoneVerification}
         transparent
-        visible={isTimePickerOpen}
+        visible={isPhoneVerificationVisible}
       >
-        <Pressable
-          accessibilityLabel="Chiudi selezione orario"
-          accessibilityRole="button"
-          onPress={() => setIsTimePickerOpen(false)}
-          style={styles.modalBackdrop}
-        >
-          <View style={styles.timeMenu}>
-            <Text style={styles.timeMenuTitle}>Seleziona un orario</Text>
-            {availableTimes.map((time) => (
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Verifica il numero</Text>
+            <Text style={styles.modalMessage}>
+              Per confermare l’ordine devi prima verificare il tuo numero di
+              telefono tramite il codice OTP.
+            </Text>
+            <View style={styles.modalActions}>
               <Pressable
-                accessibilityRole="button"
-                key={time}
-                onPress={() => {
-                  onSelectTime(time);
-                  setIsTimePickerOpen(false);
-                }}
-                style={({ pressed }) => [
-                  styles.timeOption,
-                  selectedTime === time && styles.selectedTimeOption,
-                  pressed && styles.pressed,
-                ]}
+                onPress={onClosePhoneVerification}
+                style={styles.secondaryButton}
               >
-                <Text style={styles.timeOptionText}>{time}</Text>
+                <Text style={styles.secondaryText}>Annulla</Text>
               </Pressable>
-            ))}
+              <Pressable
+                onPress={onProceedPhoneVerification}
+                style={styles.primaryButton}
+              >
+                <Text style={styles.primaryText}>Procedi</Text>
+              </Pressable>
+            </View>
           </View>
-        </Pressable>
+        </View>
       </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  page: {
-    backgroundColor: colors.background,
-    flex: 1,
+  page: { backgroundColor: colors.background, flex: 1 },
+  header: {
+    backgroundColor: colors.tabBar,
+    elevation: 4,
+    shadowColor: colors.shadow,
+    shadowOffset: { height: 2, width: 0 },
+    shadowOpacity: 0.14,
+    shadowRadius: 4,
+    zIndex: 1,
   },
-  heading: {
+  headerContent: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 10,
+    height: 58,
+    justifyContent: "space-between",
     paddingHorizontal: 16,
+  },
+  headerSide: {
+    alignItems: "flex-start",
+    flex: 1,
+  },
+  headerSideRight: {
+    alignItems: "flex-end",
   },
   backButton: {
     alignItems: "center",
-    backgroundColor: colors.title,
-    borderRadius: 16,
-    elevation: 2,
-    height: 32,
+    backgroundColor: "#000",
+    color: "#fff",
+    borderRadius: 18,
+    height: 36,
     justifyContent: "center",
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
-    shadowRadius: 3,
-    width: 32,
+    width: 36,
   },
   title: {
     color: colors.text,
-    fontFamily: fonts.regular,
-    fontSize: responsiveFontSize(30),
+    fontFamily: fonts.semiBold,
+    fontSize: responsiveFontSize(23),
+    textAlign: "center",
   },
-  divider: {
-    backgroundColor: colors.textMuted,
-    height: 1,
-    marginHorizontal: 16,
-    marginTop: 10,
+  crown: {
+    height: 34,
+    width: 34,
   },
   list: {
     flexGrow: 1,
@@ -229,17 +339,37 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     fontSize: responsiveFontSize(17),
   },
+  actionError: {
+    color: colors.error,
+    fontFamily: fonts.regular,
+    fontSize: responsiveFontSize(15),
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  errorText: {
+    color: colors.error,
+    fontFamily: fonts.regular,
+    fontSize: responsiveFontSize(16),
+    textAlign: "center",
+  },
+  retryButton: {
+    backgroundColor: colors.title,
+    borderRadius: 18,
+    paddingHorizontal: 22,
+    paddingVertical: 9,
+  },
+  retryText: {
+    color: colors.text,
+    fontFamily: fonts.bold,
+    fontSize: responsiveFontSize(16),
+  },
   summary: {
     backgroundColor: colors.background,
     borderColor: colors.border,
     borderTopWidth: 1,
     elevation: 7,
-    paddingHorizontal: 70,
-    paddingTop: 14,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
+    paddingHorizontal: 22,
+    paddingTop: 12,
   },
   totalRow: {
     alignItems: "center",
@@ -248,7 +378,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingBottom: 3,
-    paddingHorizontal: 4,
   },
   totalLabel: {
     color: colors.text,
@@ -260,49 +389,30 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: responsiveFontSize(29),
   },
-  timeSelector: {
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 22,
-    borderWidth: 1,
-    elevation: 2,
-    flexDirection: "row",
-    height: 44,
-    justifyContent: "space-between",
-    marginTop: 18,
-    paddingHorizontal: 16,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-  },
-  timePlaceholder: {
-    color: colors.textMuted,
-    fontFamily: fonts.regular,
-    fontSize: responsiveFontSize(14),
-  },
-  timeValue: {
+  selectorLabel: {
     color: colors.text,
     fontFamily: fonts.semiBold,
-    fontSize: responsiveFontSize(15),
+    fontSize: responsiveFontSize(14),
+    marginBottom: 6,
+  },
+  selectorColumn: {
+    flex: 1,
+    minWidth: 0,
+  },
+  selectorsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 10,
   },
   confirmButton: {
     alignItems: "center",
     backgroundColor: colors.title,
     borderRadius: 22,
-    elevation: 2,
     height: 44,
     justifyContent: "center",
-    marginTop: 12,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
-    shadowRadius: 3,
+    marginTop: 18,
   },
-  disabledButton: {
-    opacity: 0.5,
-  },
+  disabledButton: { opacity: 0.5 },
   confirmText: {
     color: colors.text,
     fontFamily: fonts.bold,
@@ -310,38 +420,50 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.35)",
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 32,
   },
-  timeMenu: {
+  modalCard: {
     backgroundColor: colors.surface,
     borderRadius: 20,
-    maxWidth: 360,
-    padding: 18,
+    maxWidth: 380,
+    padding: 20,
     width: "100%",
   },
-  timeMenuTitle: {
+  modalTitle: {
     color: colors.text,
     fontFamily: fonts.bold,
-    fontSize: responsiveFontSize(20),
+    fontSize: responsiveFontSize(21),
     marginBottom: 10,
   },
-  timeOption: {
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  selectedTimeOption: {
-    backgroundColor: colors.title,
-  },
-  timeOptionText: {
+  modalMessage: {
     color: colors.text,
     fontFamily: fonts.regular,
-    fontSize: responsiveFontSize(17),
+    fontSize: responsiveFontSize(16),
+    lineHeight: 22,
   },
-  pressed: {
-    opacity: 0.7,
+  modalActions: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "flex-end",
+    marginTop: 20,
   },
+  primaryButton: {
+    backgroundColor: colors.title,
+    borderRadius: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  primaryText: { color: colors.text, fontFamily: fonts.bold },
+  secondaryButton: {
+    borderColor: colors.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  secondaryText: { color: colors.text, fontFamily: fonts.semiBold },
+  pressed: { opacity: 0.72 },
 });

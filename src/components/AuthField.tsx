@@ -116,7 +116,7 @@ export function AuthField({
             }),
             top: animation.interpolate({
               inputRange: [0, 1],
-              outputRange: [29, -6],
+              outputRange: [31, -6],
             }),
           },
           error && styles.labelError,

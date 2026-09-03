@@ -1,8 +1,12 @@
+import axios from "axios";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 
-import { getProduct } from "@/services/products/products.service";
-import type { ProductDetail } from "@/types/product";
+import { AuthContext } from "@/context/auth.context";
+import { useCart } from "@/context/cart.context";
+import { useProductDetail } from "@/hooks/useProductDetail";
+import { useVariationSelection } from "@/hooks/useVariationsSelection";
+import { addCartItem } from "@/services/cart/cart.service";
 
 import ProductDetailView from "./ProductDetailView";
 
@@ -14,10 +18,12 @@ export default function ProductDetailContainer({
   productId,
 }: ProductDetailContainerProps) {
   const router = useRouter();
-  const [product, setProduct] = useState<ProductDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [requestVersion, setRequestVersion] = useState(0);
+  const { isLoggedIn } = useContext(AuthContext);
+  const { increment } = useCart();
+  const productDetail = useProductDetail(productId);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [addToCartError, setAddToCartError] = useState<string | null>(null);
+  const addToCartRequestInFlight = useRef(false);
 
   const handleBackPress = useCallback(() => {
     router.back();
@@ -27,56 +33,76 @@ export default function ProductDetailContainer({
     router.push("/cart");
   }, [router]);
 
-  const retry = useCallback(() => {
-    setRequestVersion((version) => version + 1);
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadProduct() {
-      if (!productId) {
-        setError("A product id is required.");
-        setIsLoading(false);
+  const handleAddToCart = useCallback(
+    async (quantity: number, variationIds: number[]) => {
+      if (!productDetail.product) {
         return;
       }
 
-      setError(null);
-      setIsLoading(true);
+      if (!isLoggedIn) {
+        router.push("/login");
+        return;
+      }
+
+      if (addToCartRequestInFlight.current) {
+        return;
+      }
+
+      addToCartRequestInFlight.current = true;
+      setAddToCartError(null);
+      setIsAddingToCart(true);
 
       try {
-        const response = await getProduct(productId, controller.signal);
-        setProduct(response.data);
+        await addCartItem({
+          productId: productDetail.product.id,
+          quantity,
+          variationIds,
+        });
+        increment(quantity);
       } catch (caughtError) {
-        if (controller.signal.aborted) {
-          return;
-        }
+        if (
+          axios.isAxiosError<{
+            errors?: Record<string, string[]>;
+            message?: string;
+          }>(caughtError)
+        ) {
+          const validationMessage = Object.values(
+            caughtError.response?.data.errors ?? {},
+          )[0]?.[0];
 
-        setError(
-          caughtError instanceof Error
-            ? caughtError.message
-            : "Something went wrong.",
-        );
+          setAddToCartError(
+            validationMessage ??
+              caughtError.response?.data.message ??
+              "Non è stato possibile aggiungere il prodotto al carrello.",
+          );
+        } else {
+          setAddToCartError(
+            caughtError instanceof Error
+              ? caughtError.message
+              : "Non è stato possibile aggiungere il prodotto al carrello.",
+          );
+        }
       } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        addToCartRequestInFlight.current = false;
+        setIsAddingToCart(false);
       }
-    }
-
-    loadProduct();
-
-    return () => controller.abort();
-  }, [productId, requestVersion]);
+    },
+    [increment, isLoggedIn, productDetail.product, router],
+  );
 
   return (
     <ProductDetailView
-      error={error}
-      isLoading={isLoading}
+      useVariationsSelection={useVariationSelection}
+      addToCartError={addToCartError}
+      error={productId ? productDetail.error : "A product id is required."}
+      isAddingToCart={isAddingToCart}
+      isLoading={productId ? productDetail.isLoading : false}
+      onAddToCart={handleAddToCart}
       onBackPress={handleBackPress}
       onCartPress={handleCartPress}
-      onRetry={retry}
-      product={product}
+      onRetry={productDetail.retry}
+      product={productDetail.product}
+      showCart={isLoggedIn}
     />
   );
 }

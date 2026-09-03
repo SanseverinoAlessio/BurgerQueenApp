@@ -1,4 +1,5 @@
 import { AuthContext, AuthProvider } from "@/context/auth.context";
+import { CartProvider } from "@/context/cart.context";
 import {
   SignikaNegative_400Regular,
   SignikaNegative_600SemiBold,
@@ -19,7 +20,6 @@ function RootNavigator() {
       <Stack.Protected guard={isLoggedIn}>
         <Stack.Screen name="(protected)" />
       </Stack.Protected>
-      <Stack.Screen name="cart" />
       <Stack.Screen name="login" />
     </Stack>
   );
@@ -38,7 +38,9 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <RootNavigator />
+      <CartProvider>
+        <RootNavigator />
+      </CartProvider>
     </AuthProvider>
   );
 }

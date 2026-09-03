@@ -83,7 +83,7 @@ export function RegistrationContainer() {
         response.access_token,
         response.refresh_token,
       );
-      signIn();
+      signIn(response.profile);
       router.replace("/");
     } catch (caughtError) {
       if (axios.isAxiosError<{ message?: string }>(caughtError)) {

@@ -14,7 +14,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type RegistrationViewProps = {
   email: string;
@@ -63,138 +63,142 @@ export function RegistrationView({
   passwordConfirmation,
   phone,
 }: RegistrationViewProps) {
-  const insets = useSafeAreaInsets();
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={styles.keyboardView}
     >
-      <ScrollView
-        contentContainerStyle={[
-          styles.page,
-          { paddingBottom: Math.max(insets.bottom + 92, 112) },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <AppHeader showCart={false} subtitle="Lorem ipsum" />
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.title}>A Regina T’Aspetta</Text>
-
-          <Pressable
-            accessibilityLabel="Torna al login"
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={onBack}
-            style={({ pressed }) => [styles.backRow, pressed && styles.pressed]}
-          >
-            <View style={styles.backIcon}>
-              <FontAwesome6
-                color={colors.surface}
-                name="chevron-left"
-                size={15}
-              />
-            </View>
-            <Text style={styles.subtitle}>Registrati!</Text>
-          </Pressable>
-
-          <View style={styles.form}>
-            <AuthField
-              autoComplete="given-name"
-              error={fieldErrors.first_name}
-              icon="user"
-              label="Nome"
-              onChangeText={onChangeFirstName}
-              returnKeyType="next"
-              value={firstName}
-            />
-            <AuthField
-              autoComplete="family-name"
-              error={fieldErrors.last_name}
-              icon="user"
-              label="Cognome"
-              onChangeText={onChangeLastName}
-              returnKeyType="next"
-              value={lastName}
-            />
-            <AuthField
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect={false}
-              error={fieldErrors.email}
-              icon="envelope"
-              keyboardType="email-address"
-              label="Email"
-              onChangeText={onChangeEmail}
-              returnKeyType="next"
-              value={email}
-            />
-            <AuthField
-              autoComplete="tel"
-              error={fieldErrors.phone}
-              icon="phone"
-              keyboardType="phone-pad"
-              label="Numero di telefono"
-              onChangeText={onChangePhone}
-              returnKeyType="next"
-              value={phone}
-            />
-            <AuthField
-              autoCapitalize="none"
-              autoComplete="new-password"
-              error={fieldErrors.password}
-              icon="lock"
-              label="Password"
-              onChangeText={onChangePassword}
-              onToggleVisibility={onTogglePasswordVisibility}
-              passwordVisible={isPasswordVisible}
-              returnKeyType="next"
-              secureTextEntry={!isPasswordVisible}
-              value={password}
-            />
-            <AuthField
-              autoCapitalize="none"
-              autoComplete="new-password"
-              error={fieldErrors.password_confirmation}
-              icon="lock"
-              label="Ripeti Password"
-              onChangeText={onChangePasswordConfirmation}
-              onSubmitEditing={onRegister}
-              onToggleVisibility={onTogglePasswordConfirmationVisibility}
-              passwordVisible={isPasswordConfirmationVisible}
-              returnKeyType="done"
-              secureTextEntry={!isPasswordConfirmationVisible}
-              value={passwordConfirmation}
-            />
+      <SafeAreaView edges={["right", "bottom", "left"]} style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.page}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <AppHeader showCart={false} subtitle="Lorem ipsum" />
           </View>
 
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <View style={styles.card}>
+            <Text style={styles.title}>A Regina T’Aspetta</Text>
 
-          <Pressable
-            accessibilityRole="button"
-            disabled={isSubmitting}
-            onPress={onRegister}
-            style={({ pressed }) => [
-              styles.registerButton,
-              isSubmitting && styles.disabled,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.registerButtonText}>
-              {isSubmitting ? "Registrazione..." : "Registrati"}
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+            <Pressable
+              accessibilityLabel="Torna al login"
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={onBack}
+              style={({ pressed }) => [
+                styles.backRow,
+                pressed && styles.pressed,
+              ]}
+            >
+              <View style={styles.backIcon}>
+                <FontAwesome6
+                  color={colors.surface}
+                  name="chevron-left"
+                  size={15}
+                />
+              </View>
+              <Text style={styles.subtitle}>Registrati!</Text>
+            </Pressable>
+
+            <View style={styles.form}>
+              <AuthField
+                autoComplete="given-name"
+                error={fieldErrors.first_name}
+                icon="user"
+                label="Nome"
+                onChangeText={onChangeFirstName}
+                returnKeyType="next"
+                value={firstName}
+              />
+              <AuthField
+                autoComplete="family-name"
+                error={fieldErrors.last_name}
+                icon="user"
+                label="Cognome"
+                onChangeText={onChangeLastName}
+                returnKeyType="next"
+                value={lastName}
+              />
+              <AuthField
+                autoCapitalize="none"
+                autoComplete="email"
+                autoCorrect={false}
+                error={fieldErrors.email}
+                icon="envelope"
+                keyboardType="email-address"
+                label="Email"
+                onChangeText={onChangeEmail}
+                returnKeyType="next"
+                value={email}
+              />
+              <AuthField
+                autoComplete="tel"
+                error={fieldErrors.phone}
+                icon="phone"
+                keyboardType="phone-pad"
+                label="Numero di telefono"
+                onChangeText={onChangePhone}
+                returnKeyType="next"
+                value={phone}
+              />
+              <AuthField
+                autoCapitalize="none"
+                autoComplete="new-password"
+                error={fieldErrors.password}
+                icon="lock"
+                label="Password"
+                onChangeText={onChangePassword}
+                onToggleVisibility={onTogglePasswordVisibility}
+                passwordVisible={isPasswordVisible}
+                returnKeyType="next"
+                secureTextEntry={!isPasswordVisible}
+                value={password}
+              />
+              <AuthField
+                autoCapitalize="none"
+                autoComplete="new-password"
+                error={fieldErrors.password_confirmation}
+                icon="lock"
+                label="Ripeti Password"
+                onChangeText={onChangePasswordConfirmation}
+                onSubmitEditing={onRegister}
+                onToggleVisibility={onTogglePasswordConfirmationVisibility}
+                passwordVisible={isPasswordConfirmationVisible}
+                returnKeyType="done"
+                secureTextEntry={!isPasswordConfirmationVisible}
+                value={passwordConfirmation}
+              />
+            </View>
+
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            <Pressable
+              accessibilityRole="button"
+              disabled={isSubmitting}
+              onPress={onRegister}
+              style={({ pressed }) => [
+                styles.registerButton,
+                isSubmitting && styles.disabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.registerButtonText}>
+                {isSubmitting ? "Registrazione..." : "Registrati"}
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
   keyboardView: {
     backgroundColor: colors.background,
     flex: 1,

@@ -7,10 +7,13 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppHeader } from "@/components/AppHeader";
+import { CartButton } from "@/components/CartButton";
 import { colors } from "@/theme/colors";
 import { fonts } from "@/theme/fonts";
+import type { ElementMeasurements } from "@/types/layout";
 import type { Product } from "@/types/product";
 import { responsiveFontSize } from "@/utils/responsiveFontSize";
 
@@ -23,8 +26,13 @@ type CategoryProductsViewProps = {
   onBackPress: () => void;
   onCartPress: () => void;
   onProductPress: (productId: number) => void;
+  onQuickAddPress: (
+    productId: number,
+    buttonMeasurements: ElementMeasurements,
+  ) => void;
   onRetry: () => void;
   products: Product[];
+  showCart: boolean;
 };
 
 export default function CategoryProductsView({
@@ -34,8 +42,10 @@ export default function CategoryProductsView({
   onBackPress,
   onCartPress,
   onProductPress,
+  onQuickAddPress,
   onRetry,
   products,
+  showCart,
 }: CategoryProductsViewProps) {
   const titleParts = categoryName.trim().split(/\s+/);
   const titleStart = titleParts.slice(0, 2).join(" ");
@@ -63,6 +73,7 @@ export default function CategoryProductsView({
   const header = (
     <>
       <AppHeader showCart={false} subtitle="Lorem ipsum" />
+
       <View style={styles.heading}>
         <Pressable
           accessibilityLabel="Torna indietro"
@@ -82,52 +93,45 @@ export default function CategoryProductsView({
             <Text style={styles.titleAccent}> {titleAccent}</Text>
           ) : null}
         </Text>
-        <Pressable
-          accessibilityLabel="Carrello, 1 prodotto"
-          accessibilityRole="button"
-          hitSlop={8}
-          onPress={onCartPress}
-          style={({ pressed }) => [
-            styles.cartButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <FontAwesome6 color={colors.text} name="cart-shopping" size={23} />
-          <View style={styles.cartBadge}>
-            <Text style={styles.cartBadgeText}>1</Text>
-          </View>
-        </Pressable>
+        {showCart ? <CartButton onPress={onCartPress} /> : null}
       </View>
       <View style={styles.divider} />
     </>
   );
 
   return (
-    <FlatList
-      contentContainerStyle={styles.list}
-      data={error || isLoading ? [] : products}
-      keyExtractor={(product) => String(product.id)}
-      ListEmptyComponent={emptyContent}
-      ListHeaderComponent={header}
-      renderItem={({ item }) => (
-        <View style={styles.cardContainer}>
-          <ProductCard
-            onAddPress={() => onProductPress(item.id)}
-            onPress={() => onProductPress(item.id)}
-            product={item}
-          />
-        </View>
-      )}
-      showsVerticalScrollIndicator={false}
-    />
+    <SafeAreaView edges={["right", "bottom", "left"]} style={styles.safeArea}>
+      <FlatList
+        contentContainerStyle={styles.list}
+        data={error || isLoading ? [] : products}
+        keyExtractor={(product) => String(product.id)}
+        ListEmptyComponent={emptyContent}
+        ListHeaderComponent={header}
+        renderItem={({ item }) => (
+          <View style={styles.cardContainer}>
+            <ProductCard
+              onAddPress={(product, measurements) =>
+                onQuickAddPress(product.id, measurements)
+              }
+              onPress={() => onProductPress(item.id)}
+              product={item}
+            />
+          </View>
+        )}
+        showsVerticalScrollIndicator={false}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
   list: {
     backgroundColor: colors.background,
     flexGrow: 1,
-    paddingBottom: 96,
   },
   heading: {
     alignItems: "center",
@@ -161,35 +165,6 @@ const styles = StyleSheet.create({
   },
   titleAccent: {
     color: colors.title,
-  },
-  cartButton: {
-    alignItems: "center",
-    backgroundColor: colors.cartButton,
-    borderRadius: 27,
-    elevation: 4,
-    height: 54,
-    justifyContent: "center",
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    width: 54,
-  },
-  cartBadge: {
-    alignItems: "center",
-    backgroundColor: colors.badge,
-    borderRadius: 10,
-    bottom: -1,
-    height: 20,
-    justifyContent: "center",
-    position: "absolute",
-    right: -3,
-    width: 20,
-  },
-  cartBadgeText: {
-    color: colors.badgeText,
-    fontFamily: fonts.bold,
-    fontSize: responsiveFontSize(11),
   },
   divider: {
     backgroundColor: colors.textMuted,

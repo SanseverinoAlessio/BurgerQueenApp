@@ -8,7 +8,10 @@ import type { CartItem } from "@/types/cart";
 import { resolveApiImageUrl } from "@/utils/resolveApiImageUrl";
 import { responsiveFontSize } from "@/utils/responsiveFontSize";
 
+import { QuantityPicker } from "./QuantityPicker";
+
 type CartItemCardProps = {
+  isUpdating: boolean;
   item: CartItem;
   onDecrease: () => void;
   onIncrease: () => void;
@@ -16,6 +19,7 @@ type CartItemCardProps = {
 };
 
 export function CartItemCard({
+  isUpdating,
   item,
   onDecrease,
   onIncrease,
@@ -55,31 +59,14 @@ export function CartItemCard({
           ) : null}
           <Text style={styles.price}>€ {formattedPrice}</Text>
 
-          <View style={styles.quantity}>
-            <Pressable
-              accessibilityLabel={`Riduci quantità di ${item.name}`}
-              accessibilityRole="button"
-              disabled={item.quantity === 1}
-              hitSlop={8}
-              onPress={onDecrease}
-              style={({ pressed }) => pressed && styles.pressed}
-            >
-              <FontAwesome6
-                color={item.quantity === 1 ? colors.textMuted : colors.text}
-                name="minus"
-                size={14}
-              />
-            </Pressable>
-            <Text style={styles.quantityText}>{item.quantity}</Text>
-            <Pressable
-              accessibilityLabel={`Aumenta quantità di ${item.name}`}
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={onIncrease}
-              style={({ pressed }) => pressed && styles.pressed}
-            >
-              <FontAwesome6 color={colors.text} name="plus" size={14} />
-            </Pressable>
+          <View style={styles.quantityPicker}>
+            <QuantityPicker
+              accessibilityLabel={`Quantità di ${item.name}`}
+              isLoading={isUpdating}
+              onDecrease={onDecrease}
+              onIncrease={onIncrease}
+              quantity={item.quantity}
+            />
           </View>
         </View>
       </View>
@@ -146,30 +133,20 @@ const styles = StyleSheet.create({
   description: {
     color: colors.text,
     fontFamily: fonts.regular,
-    fontSize: responsiveFontSize(13),
-    lineHeight: 15,
+    fontSize: responsiveFontSize(15),
+    lineHeight: 18,
     paddingRight: 8,
   },
   price: {
     color: colors.text,
     fontFamily: fonts.semiBold,
-    fontSize: responsiveFontSize(16),
+    fontSize: responsiveFontSize(19),
     marginTop: 7,
   },
-  quantity: {
-    alignItems: "center",
+  quantityPicker: {
     bottom: 10,
-    flexDirection: "row",
-    gap: 12,
     position: "absolute",
     right: 10,
-  },
-  quantityText: {
-    color: colors.text,
-    fontFamily: fonts.bold,
-    fontSize: responsiveFontSize(17),
-    minWidth: 12,
-    textAlign: "center",
   },
   removeButton: {
     alignItems: "center",

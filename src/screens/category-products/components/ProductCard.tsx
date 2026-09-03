@@ -1,15 +1,20 @@
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { Image } from "expo-image";
+import { useRef } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors } from "@/theme/colors";
 import { fonts } from "@/theme/fonts";
+import type { ElementMeasurements } from "@/types/layout";
 import type { Product } from "@/types/product";
 import { resolveApiImageUrl } from "@/utils/resolveApiImageUrl";
 import { responsiveFontSize } from "@/utils/responsiveFontSize";
 
 type ProductCardProps = {
-  onAddPress?: (product: Product) => void;
+  onAddPress?: (
+    product: Product,
+    measurements: ElementMeasurements,
+  ) => void;
   onPress?: () => void;
   product: Product;
 };
@@ -23,6 +28,13 @@ export function ProductCard({
     ? product.price.toFixed(0)
     : product.price.toFixed(2);
   const imageUrl = resolveApiImageUrl(product.img_url);
+  const addButtonRef = useRef<View>(null);
+
+  function handleAddPress() {
+    addButtonRef.current?.measureInWindow((x, y, width, height) => {
+      onAddPress?.(product, { height, width, x, y });
+    });
+  }
 
   return (
     <Pressable
@@ -61,7 +73,8 @@ export function ProductCard({
           accessibilityLabel={`Aggiungi ${product.name}`}
           accessibilityRole="button"
           hitSlop={6}
-          onPress={() => onAddPress?.(product)}
+          onPress={handleAddPress}
+          ref={addButtonRef}
           style={({ pressed }) => [
             styles.addButton,
             pressed && styles.addButtonPressed,

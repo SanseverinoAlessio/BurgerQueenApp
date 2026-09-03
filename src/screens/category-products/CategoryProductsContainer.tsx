@@ -1,7 +1,10 @@
+import { QuickAddItemModal } from "@/components/QuickAddItemModal";
+import { AuthContext } from "@/context/auth.context";
+import { useQuickAddItem } from "@/hooks/useQuickAddItem";
 import { getCategoryProducts } from "@/services/products/products.service";
 import type { Product } from "@/types/product";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import CategoryProductsView from "./CategoryProductsView";
 
 type CategoryProductsContainerProps = {
@@ -14,6 +17,8 @@ export default function CategoryProductsContainer({
   categoryName = "Prodotti",
 }: CategoryProductsContainerProps) {
   const router = useRouter();
+  const { isLoggedIn } = useContext(AuthContext);
+  const quickAdd = useQuickAddItem();
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,15 +91,28 @@ export default function CategoryProductsContainer({
   }, [categoryId, requestVersion]);
 
   return (
-    <CategoryProductsView
-      categoryName={categoryName}
-      error={error}
-      isLoading={isLoading}
-      onBackPress={handleBackPress}
-      onCartPress={handleCartPress}
-      onProductPress={handleProductPress}
-      onRetry={retry}
-      products={products}
-    />
+    <>
+      <CategoryProductsView
+        categoryName={categoryName}
+        error={error}
+        isLoading={isLoading}
+        onBackPress={handleBackPress}
+        onCartPress={handleCartPress}
+        onProductPress={handleProductPress}
+        onQuickAddPress={quickAdd.open}
+        onRetry={retry}
+        products={products}
+        showCart={isLoggedIn}
+      />
+      <QuickAddItemModal
+        buttonMeasurements={quickAdd.buttonMeasurements}
+        error={quickAdd.error}
+        isLoading={quickAdd.isLoading}
+        isOpen={quickAdd.isOpen}
+        onClose={quickAdd.close}
+        onRetry={quickAdd.retry}
+        product={quickAdd.product}
+      />
+    </>
   );
 }

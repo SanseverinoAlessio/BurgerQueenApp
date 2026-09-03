@@ -1,9 +1,9 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { router } from "expo-router";
 
-import AuthService from "@/services/api/AuthService";
 import { notifySessionExpired } from "@/services/AuthSessionEvents";
 import JwtService from "@/services/JwtService";
+import type { AuthTokenResponse } from "@/types/auth";
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
@@ -111,10 +111,13 @@ axiosClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const response = await AuthService.refreshToken();
-      const accessToken = response.access_token;
+      const response = await axios.post<AuthTokenResponse>(
+        `${baseUrl?.replace(/\/$/, "")}/auth/refresh`,
+        { refresh_token: currentRefreshToken },
+      );
+      const accessToken = response.data.access_token;
 
-      await JwtService.setTokenPair(accessToken, response.refresh_token);
+      await JwtService.setTokenPair(accessToken, response.data.refresh_token);
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
       processQueue(null, accessToken);
 

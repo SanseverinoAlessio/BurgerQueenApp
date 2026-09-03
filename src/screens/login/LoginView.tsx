@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppHeader } from "@/components/AppHeader";
 import { AuthField } from "@/components/AuthField";
@@ -45,114 +45,115 @@ export function LoginView({
   onTogglePasswordVisibility,
   password,
 }: LoginViewProps) {
-  const insets = useSafeAreaInsets();
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={styles.keyboardView}
     >
-      <ScrollView
-        contentContainerStyle={[
-          styles.page,
-          { paddingBottom: Math.max(insets.bottom + 92, 112) },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <AppHeader showCart={false} subtitle="Lorem ipsum" />
-        </View>
-
-        <View style={styles.cardShadow}>
-          <View style={styles.card}>
-            <Text style={styles.title}>A Regina T’Aspetta</Text>
-            <Text style={styles.subtitle}>Accedi al tuo account</Text>
-
-            <View style={styles.form}>
-              <AuthField
-                autoCapitalize="none"
-                autoComplete="email"
-                autoCorrect={false}
-                error={fieldErrors.email}
-                icon="envelope"
-                keyboardType="email-address"
-                label="Email"
-                onChangeText={onChangeEmail}
-                returnKeyType="next"
-                value={email}
-              />
-
-              <AuthField
-                autoCapitalize="none"
-                autoComplete="current-password"
-                error={fieldErrors.password}
-                icon="lock"
-                label="Password"
-                onChangeText={onChangePassword}
-                onSubmitEditing={onLogin}
-                onToggleVisibility={onTogglePasswordVisibility}
-                passwordVisible={isPasswordVisible}
-                returnKeyType="done"
-                secureTextEntry={!isPasswordVisible}
-                value={password}
-              />
-            </View>
-
-            <Pressable
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={onForgotPassword}
-              style={({ pressed }) => [
-                styles.forgotButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.forgotText}>
-                Hai dimenticato la{" "}
-                <Text style={styles.inlineBold}>password?</Text>
-              </Text>
-            </Pressable>
-
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-            <Pressable
-              accessibilityRole="button"
-              disabled={isSubmitting}
-              onPress={onLogin}
-              style={({ pressed }) => [
-                styles.loginButton,
-                isSubmitting && styles.disabled,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.loginButtonText}>
-                {isSubmitting ? "Accesso..." : "Accedi"}
-              </Text>
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={onRegister}
-              style={({ pressed }) => [
-                styles.registerButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.registerText}>
-                Non hai ancora un account?{" "}
-                <Text style={styles.inlineBold}>registrati</Text>
-              </Text>
-            </Pressable>
+      <SafeAreaView edges={["right", "bottom", "left"]} style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.page}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <AppHeader showCart={false} subtitle="Lorem ipsum" />
           </View>
-        </View>
-      </ScrollView>
+
+          <View style={styles.cardShadow}>
+            <View style={styles.card}>
+              <Text style={styles.title}>A Regina T’Aspetta</Text>
+              <Text style={styles.subtitle}>Accedi al tuo account</Text>
+
+              <View style={styles.form}>
+                <AuthField
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  autoCorrect={false}
+                  error={fieldErrors.email}
+                  icon="envelope"
+                  keyboardType="email-address"
+                  label="Email"
+                  onChangeText={onChangeEmail}
+                  returnKeyType="next"
+                  value={email}
+                />
+
+                <AuthField
+                  autoCapitalize="none"
+                  autoComplete="current-password"
+                  error={fieldErrors.password}
+                  icon="lock"
+                  label="Password"
+                  onChangeText={onChangePassword}
+                  onSubmitEditing={onLogin}
+                  onToggleVisibility={onTogglePasswordVisibility}
+                  passwordVisible={isPasswordVisible}
+                  returnKeyType="done"
+                  secureTextEntry={!isPasswordVisible}
+                  value={password}
+                />
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={onForgotPassword}
+                style={({ pressed }) => [
+                  styles.forgotButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.forgotText}>
+                  Hai dimenticato la{" "}
+                  <Text style={styles.inlineBold}>password?</Text>
+                </Text>
+              </Pressable>
+
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+              <Pressable
+                accessibilityRole="button"
+                disabled={isSubmitting}
+                onPress={onLogin}
+                style={({ pressed }) => [
+                  styles.loginButton,
+                  isSubmitting && styles.disabled,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.loginButtonText}>
+                  {isSubmitting ? "Accesso..." : "Accedi"}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={onRegister}
+                style={({ pressed }) => [
+                  styles.registerButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.registerText}>
+                  Non hai ancora un account?{" "}
+                  <Text style={styles.inlineBold}>registrati</Text>
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
   keyboardView: {
     backgroundColor: colors.background,
     flex: 1,
